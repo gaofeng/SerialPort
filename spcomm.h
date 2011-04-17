@@ -2,17 +2,29 @@
 #ifndef _SPCOMM_H
 #define _SPCOMM_H
 
-#define u8 unsigned char
-#define u32 unsigned int
-#define Handle void*
+/*VUart设备的信息*/
+typedef struct VUART_INFO_st
+{
+    HANDLE hCommFile;
+    const char* ComName;
+    BOOL PortOpen;
+    DWORD BaudRate;
+    WORD Parity;
+    BYTE StopBits;
+    BYTE ByteSize;
+    HANDLE      ReadThread;            /*线程句柄*/
+    OVERLAPPED  OverlappedWrite;
+} SPComm;
 
-Handle VUARTCreate(u8* commname);
+/*异步方式打开串口*/
+SPComm* SPCommCreate(void);
+/*打开串口*/
+BOOL SPCommStart(SPComm* comm);
 
-void VUARTSetBaudrate(Handle h, u32 baudrate);
+void SPCommSetBaudrate(SPComm* comm, DWORD baudrate);
 
-u32 VUARTSend(Handle h, u8* buf, u32 len);
-u32 VUARTRecv(Handle h, u8* buf, u32 len, bool clear);
+void SPCommSetParity(SPComm* comm, BYTE parity);
 
-u32 VUARTDel(Handle h, u32 len);
+DWORD SPCommSend(SPComm* comm, BYTE* buf, DWORD len);
 
 #endif /*_UART_H*/

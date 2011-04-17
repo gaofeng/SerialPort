@@ -429,7 +429,7 @@ begin
                                  0, {not shared}
                                  nil, {no security ??}
                                  OPEN_EXISTING,
-                                 FILE_ATTRIBUTE_NORMAL or FILE_FLAG_OVERLAPPED,
+                                 FILE_ATTRIBUTE_NORMAL or FILE_FLAG_OVERLAPPED, //异步IO
                                  0 {template} );
 
      if hNewCommFile = INVALID_HANDLE_VALUE then
@@ -440,6 +440,7 @@ begin
      end;
 
      // Is this a valid comm handle?
+	 //Retrieves the file type of the specified file.
      if GetFileType( hNewCommFile ) <> FILE_TYPE_CHAR then
      begin
           CloseHandle( hNewCommFile );
@@ -447,7 +448,10 @@ begin
 //          raise ECommsError.Create( FPortOpenError );
           Exit;
      end;
+	 //The specified file is a character file, typically an LPT device or a console.
 
+	 //Initializes the communications parameters for a specified communications device.
+	 //配置输入和输出缓冲区大小
      if not SetupComm( hNewCommFile, 4096, 4096 ) then
      begin
           CloseHandle( hCommFile );
@@ -460,7 +464,6 @@ begin
      hCommFile := hNewCommFile;
 
      // purge any information in the buffer
-
      PurgeComm( hCommFile, PURGE_TXABORT or PURGE_RXABORT or
                            PURGE_TXCLEAR or PURGE_RXCLEAR ) ;
      FSendDataEmpty := True;
@@ -1302,6 +1305,7 @@ begin
      // Setup CommEvent handling.
 
      // Set the comm mask so we receive error signals.
+	 //Specifies a set of events to be monitored for a communications device.
      if not SetCommMask(hCommFile, EV_ERR or EV_RLSD or EV_RING ) then
      begin
           PostHangupCall;
@@ -1607,6 +1611,7 @@ StartSetupCommEvent:
      // Start waiting for Comm Errors.
      if WaitCommEvent( hCommFile, lpfdwEvtMask, lpOverlappedCommEvent ) then
      begin
+		//串口发生了错误
           // This could happen if there was an error waiting on the
           // comm port.  Lets try and handle it.
 
@@ -1620,6 +1625,7 @@ StartSetupCommEvent:
           goto StartSetupCommEvent
      end;
 
+	 //WaitCommEvent返回FALSE表示已收到数据且后台正在接收数据
      // We expect ERROR_IO_PENDING returned from WaitCommEvent
      // because we are waiting with an overlapped structure.
 
@@ -1703,6 +1709,7 @@ begin
      if (lpfdwEvtMask and EV_ERR) <> 0 then
      begin
           // Which error was it?
+		  //Retrieves information about a communications error and reports the current status of a communications device.
           if not ClearCommError( hCommFile, dwErrors, nil ) then
           begin
                dwLastError := GetLastError;
