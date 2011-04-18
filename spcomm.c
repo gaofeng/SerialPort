@@ -1,4 +1,4 @@
-
+ï»¿
 #include "windows.h"
 #include <stdio.h>
 #include "spcomm.h"
@@ -61,7 +61,7 @@ static BOOL SetupReadEvent(SPComm* comm, OVERLAPPED* read_ol, BYTE* input_buffer
     DWORD ret;
     if (ReadFile(comm->hCommFile, input_buffer, buf_len, NULL, read_ol))
     {
-        //´¦Àí½ÓÊÕµÄÊı¾İ
+        //å¤„ç†æ¥æ”¶çš„æ•°æ®
         ret = GetLastError();
         return TRUE;
         //HandleReadData(input_buffer,read_len);
@@ -166,7 +166,7 @@ EndReadThread:
 
 }
 
-/*Òì²½·½Ê½´ò¿ª´®¿Ú*/
+/*å¼‚æ­¥æ–¹å¼æ‰“å¼€ä¸²å£*/
 SPComm* SPCommCreate(void)
 {
     SPComm* comm = NULL;
@@ -190,20 +190,20 @@ SPComm* SPCommCreate(void)
     return comm;
 }
 
-/*´ò¿ª´®¿Ú*/
+/*æ‰“å¼€ä¸²å£*/
 BOOL SPCommStart(SPComm* comm)
 {
     COMMTIMEOUTS timeouts;
     DCB dcb;
 
-    /*½¨Á¢Éè±¸*/
-    comm->hCommFile = CreateFile(comm->ComName,                               /*´®¿ÚºÅ*/
-                      GENERIC_READ | GENERIC_WRITE,           /*¶ÁĞ´ÊôĞÔ*/
-                      0,       /*¹²ÏíÊôĞÔ*/
-                      0,                                      /*°²È«ÊôĞÔ, 0ÎªÄ¬ÈÏ°²È«¼¶±ğ*/
-                      OPEN_EXISTING,                          /*´ò¿ªÒÑÓĞµÄÉè±¸, ²»ÊÇ´´½¨*/
-                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,                   /*ÎÄ¼şÊôĞÔÓÃÓÚÒì²½I/O*/
-                      0                                       /*Ä£°å¾ä±ú, */
+    /*å»ºç«‹è®¾å¤‡*/
+    comm->hCommFile = CreateFile(comm->ComName,                               /*ä¸²å£å·*/
+                      GENERIC_READ | GENERIC_WRITE,           /*è¯»å†™å±æ€§*/
+                      0,       /*å…±äº«å±æ€§*/
+                      0,                                      /*å®‰å…¨å±æ€§, 0ä¸ºé»˜è®¤å®‰å…¨çº§åˆ«*/
+                      OPEN_EXISTING,                          /*æ‰“å¼€å·²æœ‰çš„è®¾å¤‡, ä¸æ˜¯åˆ›å»º*/
+                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,                   /*æ–‡ä»¶å±æ€§ç”¨äºå¼‚æ­¥I/O*/
+                      0                                       /*æ¨¡æ¿å¥æŸ„, */
                       );
     if (comm->hCommFile == INVALID_HANDLE_VALUE)
     {
@@ -227,19 +227,19 @@ BOOL SPCommStart(SPComm* comm)
 
     PurgeComm(comm->hCommFile, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR);
 
-    /*Á½×Ö·ûÖ®¼ä×î´óÑÓÊ±, ¶ÁÈ¡Êı¾İÊ±£¬Ò»µ©Á½¸ö×Ö·û´«ÊäµÄÊ±¼ä²î³¬¹ı¸ÃÊ±¼ä£¬¶ÁÈ¡º¯Êı½«·µ»ØÏÖÓĞµÄÊı¾İ*/
+    /*ä¸¤å­—ç¬¦ä¹‹é—´æœ€å¤§å»¶æ—¶, è¯»å–æ•°æ®æ—¶ï¼Œä¸€æ—¦ä¸¤ä¸ªå­—ç¬¦ä¼ è¾“çš„æ—¶é—´å·®è¶…è¿‡è¯¥æ—¶é—´ï¼Œè¯»å–å‡½æ•°å°†è¿”å›ç°æœ‰çš„æ•°æ®*/
     timeouts.ReadIntervalTimeout         = MAXDWORD;
-    /*¶ÁÈ¡Ã¿¸ö×Ö·û¼äµÄ³¬Ê±*/
+    /*è¯»å–æ¯ä¸ªå­—ç¬¦é—´çš„è¶…æ—¶*/
     timeouts.ReadTotalTimeoutMultiplier  = 0;
-    /*¶ÁÒ»´ÎÈ¡´®¿ÚÊı¾İµÄ¹Ì¶¨³¬Ê±*/
+    /*è¯»ä¸€æ¬¡å–ä¸²å£æ•°æ®çš„å›ºå®šè¶…æ—¶*/
     timeouts.ReadTotalTimeoutConstant    = 0;
-    /*Ğ´Ã¿¸ö×Ö·û¼äµÄ³¬Ê±*/
+    /*å†™æ¯ä¸ªå­—ç¬¦é—´çš„è¶…æ—¶*/
     timeouts.WriteTotalTimeoutMultiplier = 50;
-    /*Ğ´Ò»´ÎÈ¡´®¿ÚÊı¾İµÄ¹Ì¶¨³¬Ê±*/
+    /*å†™ä¸€æ¬¡å–ä¸²å£æ•°æ®çš„å›ºå®šè¶…æ—¶*/
     timeouts.WriteTotalTimeoutConstant   = 2000;
     SetCommTimeouts(comm->hCommFile, &timeouts);
 
-    /*ÉèÖÃ´®¿Ú²ÎÊı*/
+    /*è®¾ç½®ä¸²å£å‚æ•°*/
     GetCommState(comm->hCommFile, &dcb);
     dcb.BaudRate = comm->BaudRate;
     dcb.ByteSize = comm->ByteSize;
@@ -299,16 +299,16 @@ DWORD SPCommSend(SPComm* comm, BYTE* buf, DWORD len)
 
         if (!WriteFile(comm->hCommFile, buf, len, &RealSend, &ol))
         {
-            /*ÕıÔÚ·¢ËÍ*/
+            /*æ­£åœ¨å‘é€*/
             if (GetLastError() == ERROR_IO_PENDING)
             {
-                /*µÈ´ı·¢ËÍÍê³É*/
+                /*ç­‰å¾…å‘é€å®Œæˆ*/
                 do 
                 {
                     ret = WaitForSingleObject(ol.hEvent,1000);
                     if (ret == WAIT_OBJECT_0)
                     {
-                        /*·¢ËÍÍê³É*/
+                        /*å‘é€å®Œæˆ*/
                         send_len = len;
                         break;
                     }
@@ -316,7 +316,7 @@ DWORD SPCommSend(SPComm* comm, BYTE* buf, DWORD len)
                 
                 if (ret != WAIT_OBJECT_0)
                 {
-                    /*·¢ËÍÊ§°Ü*/
+                    /*å‘é€å¤±è´¥*/
                     send_len = 0;
                 }
             }
