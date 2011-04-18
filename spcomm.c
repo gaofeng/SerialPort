@@ -59,11 +59,12 @@ static BOOL HandleReadData(BYTE* input_buffer, DWORD buffer_len)
 static BOOL SetupReadEvent(SPComm* comm, OVERLAPPED* read_ol, BYTE* input_buffer, DWORD buf_len)
 {
     DWORD ret;
-    int read_len;
-    while (ReadFile(comm->hCommFile, input_buffer, buf_len, &read_len, read_ol))
+    if (ReadFile(comm->hCommFile, input_buffer, buf_len, NULL, read_ol))
     {
         //处理接收的数据
-        HandleReadData(input_buffer,read_len);
+        ret = GetLastError();
+        return TRUE;
+        //HandleReadData(input_buffer,read_len);
     }
     ret = GetLastError();
     if (ret == ERROR_IO_PENDING)
@@ -77,7 +78,7 @@ static BOOL SetupReadEvent(SPComm* comm, OVERLAPPED* read_ol, BYTE* input_buffer
     return FALSE;
 }
 
-BOOL HandleReadEvent(SPComm* comm, OVERLAPPED* read_ol, BYTE* input_buffer, DWORD buffer_size, DWORD* read_len)
+static BOOL HandleReadEvent(SPComm* comm, OVERLAPPED* read_ol, BYTE* input_buffer, DWORD buffer_size, DWORD* read_len)
 {
     if (GetOverlappedResult(comm->hCommFile, read_ol, read_len, FALSE))
     {
@@ -101,7 +102,7 @@ static void SPCommReadThread(SPComm* comm)
     memset(&read_ol, 0x00, sizeof(OVERLAPPED));
     memset(&comm_ol, 0x00, sizeof(OVERLAPPED));
 
-    read_ol.hEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
+    read_ol.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (read_ol.hEvent == NULL)
     {
         while(TRUE);
@@ -110,7 +111,7 @@ static void SPCommReadThread(SPComm* comm)
     comm_ol.hEvent = CreateEvent(
         NULL,   // default security attributes 
         TRUE,   // manual-reset event 
-        TRUE,  // not signaled 
+        FALSE,  // not signaled 
         NULL    // no name
         );
     if (comm_ol.hEvent == NULL)
@@ -178,7 +179,7 @@ SPComm* SPCommCreate(void)
 
     memset(comm, 0, sizeof(SPComm));
 
-    comm->ComName = "COM1";
+    comm->ComName = "COM2";
     comm->BaudRate = 9600;
     comm->ByteSize = 8;
     comm->StopBits = 1;
@@ -198,13 +199,13 @@ BOOL SPCommStart(SPComm* comm)
     /*建立设备*/
     comm->hCommFile = CreateFile(comm->ComName,                               /*串口号*/
                       GENERIC_READ | GENERIC_WRITE,           /*读写属性*/
-                      FILE_SHARE_WRITE|FILE_SHARE_READ,       /*共享属性*/
+                      0,       /*共享属性*/
                       0,                                      /*安全属性, 0为默认安全级别*/
                       OPEN_EXISTING,                          /*打开已有的设备, 不是创建*/
-                      FILE_FLAG_OVERLAPPED,                   /*文件属性用于异步I/O*/
+                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,                   /*文件属性用于异步I/O*/
                       0                                       /*模板句柄, */
                       );
-    if (comm == INVALID_HANDLE_VALUE)
+    if (comm->hCommFile == INVALID_HANDLE_VALUE)
     {
         printf("Error opening serial port.\n");
         return FALSE;
@@ -236,7 +237,7 @@ BOOL SPCommStart(SPComm* comm)
     timeouts.WriteTotalTimeoutMultiplier = 50;
     /*写一次取串口数据的固定超时*/
     timeouts.WriteTotalTimeoutConstant   = 2000;
-    SetCommTimeouts(comm, &timeouts);
+    SetCommTimeouts(comm->hCommFile, &timeouts);
 
     /*设置串口参数*/
     GetCommState(comm->hCommFile, &dcb);
